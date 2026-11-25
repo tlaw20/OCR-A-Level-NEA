@@ -5,8 +5,8 @@
 #include <cmath>
 
 int main() {
-    const int screenWidth  = 800;
-    const int screenHeight = 450;
+    const int screenWidth  = 810;
+    const int screenHeight = 460;
 
     InitWindow(screenWidth, screenHeight, "Simple Player Box");
     SetTargetFPS(60);
@@ -18,13 +18,13 @@ int main() {
         50.0f,                        // width
         50.0f                         // height
     };
-    const float speed = 300.0f;       // pixels per second
+    const float speed = 10.0f;       // pixels per second
 
     while (!WindowShouldClose()) {    // closes on Esc or the window's X button
         // ---------- Update ----------
         float dt = GetFrameTime();    // seconds since the last frame
 
-        // Work out which way the player wants to go
+        // Work out which way the player wants to gogit add main.cpp
         float moveX = 0.0f;
         float moveY = 0.0f;
         if (IsKeyDown(KEY_W)) moveY -= 1.0f;   // up
