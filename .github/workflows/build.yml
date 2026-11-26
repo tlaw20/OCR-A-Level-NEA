@@ -17,9 +17,15 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
+      - name: Gather the game files (exe + assets folder)
+        run: |
+          New-Item -ItemType Directory -Path dist
+          Copy-Item build/Release/BoxGame.exe dist/
+          Copy-Item -Recurse assets dist/assets
+
       - name: Save the game as a downloadable file
         uses: actions/upload-artifact@v4
         with:
           name: BoxGame-windows
-          path: build/Release/BoxGame.exe
+          path: dist
           if-no-files-found: error

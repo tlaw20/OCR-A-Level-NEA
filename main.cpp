@@ -1,36 +1,51 @@
-// Simple 2D box game using raylib.
-// Move the blue box around the window with W A S D. Press Esc to quit.
+// Simple 2D game using raylib: a sprite (picture) moved around with W A S D.
+// The picture is loaded from assets/player.png. Press Esc to quit.
 
 #include "raylib.h"
 #include <cmath>
 
 int main() {
-    const int screenWidth  = 810;
-    const int screenHeight = 460;
+    const int screenWidth  = 800;
+    const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "Simple Player Box");
+    InitWindow(screenWidth, screenHeight, "Simple Player Sprite");
     SetTargetFPS(60);
 
-    // Player: a 50x50 box starting in the middle of the window
+    // Look for files next to the .exe, no matter where the game was started from
+    ChangeDirectory(GetApplicationDirectory());
+
+    // Load the sprite. This must happen AFTER InitWindow.
+    Texture2D sprite = LoadTexture("assets/player.png");
+    SetTextureFilter(sprite, TEXTURE_FILTER_POINT);   // keeps pixel art sharp when scaled
+    const bool spriteLoaded = (sprite.id != 0);       // id 0 means the file wasn't found
+
+    // Player size: the size of the picture times a scale (2.0f would draw it twice as big)
+    const float scale = 1.0f;
+    const float playerWidth  = spriteLoaded ? sprite.width  * scale : 50.0f;
+    const float playerHeight = spriteLoaded ? sprite.height * scale : 50.0f;
+
     Rectangle player = {
-        screenWidth  / 2.0f - 25.0f,  // x
-        screenHeight / 2.0f - 25.0f,  // y
-        50.0f,                        // width
-        50.0f                         // height
+        screenWidth  / 2.0f - playerWidth  / 2.0f,   // x
+        screenHeight / 2.0f - playerHeight / 2.0f,   // y
+        playerWidth,
+        playerHeight
     };
-    const float speed = 10.0f;       // pixels per second
+    const float speed = 300.0f;       // pixels per second
+    bool facingRight = true;          // the picture is assumed to face right
 
     while (!WindowShouldClose()) {    // closes on Esc or the window's X button
         // ---------- Update ----------
-        float dt = GetFrameTime();    // seconds since the last frame
+        float dt = GetFrameTime();
 
-        // Work out which way the player wants to gogit add main.cpp
         float moveX = 0.0f;
         float moveY = 0.0f;
-        if (IsKeyDown(KEY_W)) moveY -= 1.0f;   // up
-        if (IsKeyDown(KEY_S)) moveY += 1.0f;   // down
-        if (IsKeyDown(KEY_A)) moveX -= 1.0f;   // left
-        if (IsKeyDown(KEY_D)) moveX += 1.0f;   // right
+        if (IsKeyDown(KEY_W)) moveY -= 1.0f;
+        if (IsKeyDown(KEY_S)) moveY += 1.0f;
+        if (IsKeyDown(KEY_A)) moveX -= 1.0f;
+        if (IsKeyDown(KEY_D)) moveX += 1.0f;
+
+        if (moveX > 0.0f) facingRight = true;
+        if (moveX < 0.0f) facingRight = false;
 
         // Make diagonal movement the same speed as straight movement
         float length = std::sqrt(moveX * moveX + moveY * moveY);
@@ -49,15 +64,30 @@ int main() {
         BeginDrawing();
             ClearBackground(RAYWHITE);
 
-            // A light grid so you can see the box moving across the plane
             for (int x = 0; x < screenWidth; x += 50)  DrawLine(x, 0, x, screenHeight, LIGHTGRAY);
             for (int y = 0; y < screenHeight; y += 50) DrawLine(0, y, screenWidth, y, LIGHTGRAY);
 
-            DrawRectangleRec(player, BLUE);
+            if (spriteLoaded) {
+                // 'source' is the part of the picture to use: all of it.
+                // A negative width flips the picture left-to-right.
+                Rectangle source = {
+                    0.0f, 0.0f,
+                    facingRight ? (float)sprite.width : -(float)sprite.width,
+                    (float)sprite.height
+                };
+                // Draw that picture so it fills the player's rectangle
+                DrawTexturePro(sprite, source, player, Vector2{ 0.0f, 0.0f }, 0.0f, WHITE);
+            } else {
+                // Fallback so you can see something is wrong: a blue box and a message
+                DrawRectangleRec(player, BLUE);
+                DrawText("Could not load assets/player.png", 10, 40, 20, RED);
+            }
+
             DrawText("W A S D to move   |   Esc to quit", 10, 10, 20, DARKGRAY);
         EndDrawing();
     }
 
+    UnloadTexture(sprite);   // free the picture's memory
     CloseWindow();
     return 0;
 }
